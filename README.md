@@ -255,6 +255,4 @@ Loyola College of Engineering and Technology.
 
 ---
 
-## License
 
-MIT — see `LICENSE`.
