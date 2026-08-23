@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analyzing — HerPulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .proc-screen { justify-content: center; }
+  .proc-card { text-align: center; padding: 40px 30px; }
+  .big-pulse { width: 100%; height: 90px; margin: 6px 0 18px; }
+  .big-pulse svg { width: 100%; height: 100%; }
+  .big-pulse path {
+    fill: none; stroke: var(--pulse-pink-deep); stroke-width: 3;
+    stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 480; stroke-dashoffset: 480;
+    animation: draw-pulse-big 2.2s cubic-bezier(.22,.9,.32,1) infinite;
+  }
+  @keyframes draw-pulse-big {
+    0% { stroke-dashoffset: 480; opacity: 0; }
+    12% { opacity: 1; }
+    60% { stroke-dashoffset: 0; opacity: 1; }
+    80% { stroke-dashoffset: 0; opacity: 1; }
+    100% { stroke-dashoffset: -480; opacity: 0; }
+  }
+  .step-list { text-align: left; margin-top: 26px; display: flex; flex-direction: column; gap: 14px; }
+  .step {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 14.5px; color: var(--ink-soft); font-weight: 600;
+    opacity: .4; transition: opacity .3s var(--ease);
+  }
+  .step.active { opacity: 1; color: var(--ink); }
+  .step.done { opacity: 1; color: var(--ok); }
+  .step-icon {
+    width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+    border: 2px solid var(--line); display: flex; align-items: center; justify-content: center;
+    font-size: 12px; transition: all .3s var(--ease);
+  }
+  .step.active .step-icon { border-color: var(--pulse-pink-deep); }
+  .step.active .step-icon::after {
+    content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--pulse-pink-deep);
+    animation: pulse-dot 1s ease-in-out infinite;
+  }
+  .step.done .step-icon { border-color: var(--ok); background: var(--ok); color: #fff; }
+</style>
+</head>
+<body>
+  <div class="screen proc-screen">
+    <div class="card proc-card">
+      <div class="app-header" style="justify-content:center; margin-bottom: 6px;">
+        <img src="assets/logo.png" alt="HerPulse" style="height:28px;">
+      </div>
+
+      <h1 style="font-size: 19px; margin-top: 10px;">Analyzing your health…</h1>
+      <p style="margin-top: 4px;">Please keep the app open while we process your reading.</p>
+
+      <div class="big-pulse">
+        <svg viewBox="0 0 400 90" preserveAspectRatio="none">
+          <path d="M0 45 L100 45 L124 12 L148 78 L172 45 L400 45"/>
+        </svg>
+      </div>
+
+      <div class="step-list" id="stepList">
+        <div class="step" data-step="0"><span class="step-icon"></span>Detecting sample…</div>
+        <div class="step" data-step="1"><span class="step-icon"></span>Reading sensor data…</div>
+        <div class="step" data-step="2"><span class="step-icon"></span>Running AI model…</div>
+        <div class="step" data-step="3"><span class="step-icon"></span>Generating report…</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    requireSession();
+
+    const steps = document.querySelectorAll('.step');
+    let stepIndex = -1;
+
+    function advanceStep() {
+      if (stepIndex >= 0) steps[stepIndex].classList.replace('active', 'done');
+      stepIndex++;
+      if (stepIndex < steps.length) steps[stepIndex].classList.add('active');
+    }
+
+    async function run() {
+      try {
+        await HerPulseAPI.startProcessing();
+      } catch (e) { /* backend may already be processing — continue polling regardless */ }
+
+      advanceStep();
+      const stepTimer = setInterval(advanceStep, 1000);
+
+      // poll backend for real completion; step ticker above is a visual pace-setter
+      const poll = setInterval(async () => {
+        try {
+          const s = await HerPulseAPI.getProcessingStatus();
+          if (s.status === 'done') {
+            clearInterval(poll);
+            clearInterval(stepTimer);
+            steps.forEach(st => st.classList.replace('active', 'done'));
+            setTimeout(() => { window.location.href = 'report.html'; }, 500);
+          } else if (s.status === 'error') {
+            clearInterval(poll);
+            clearInterval(stepTimer);
+            alert('Something went wrong during analysis: ' + (s.error || 'unknown error'));
+            window.location.href = 'connect.html';
+          }
+        } catch (e) { /* keep polling */ }
+      }, 900);
+    }
+
+    run();
+  </script>
+</body>
+</html>

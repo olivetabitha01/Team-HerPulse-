@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connect device — HerPulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .device-visual {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 22px 0 8px;
+  }
+  .device-ring {
+    width: 108px; height: 108px;
+    border-radius: 50%;
+    background: var(--blush);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .device-ring::before {
+    content: '';
+    position: absolute; inset: -8px;
+    border-radius: 50%;
+    border: 2px solid var(--pulse-pink);
+    opacity: 0;
+  }
+  .device-ring.syncing::before { animation: ring-pulse 1.5s ease-out infinite; }
+  @keyframes ring-pulse {
+    0% { opacity: .7; transform: scale(.9); }
+    100% { opacity: 0; transform: scale(1.35); }
+  }
+  .device-emoji { font-size: 40px; }
+  .detail-row { display:flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-row .k { color: var(--ink-soft); font-weight: 600; }
+  .detail-row .v { font-family: var(--font-mono); font-weight: 700; }
+</style>
+</head>
+<body>
+  <div class="screen">
+    <div class="app-header">
+      <img src="assets/logo.png" alt="HerPulse">
+      <span class="eyebrow">Device sync</span>
+    </div>
+
+    <div class="card">
+      <div class="device-visual">
+        <div class="device-ring" id="deviceRing">
+          <span class="device-emoji">📟</span>
+        </div>
+      </div>
+
+      <h1 class="center" style="font-size:20px; margin-top:14px;">Connect your HerPulse device</h1>
+      <p class="center" style="margin-top:6px;">Make sure the sensor pad is powered on and nearby.</p>
+
+      <div class="center" style="margin: 16px 0;">
+        <span class="chip chip-idle" id="statusChip"><span class="chip-dot"></span><span id="statusText">Not connected</span></span>
+      </div>
+
+      <div class="field">
+        <label for="deviceIdInput">Device name</label>
+        <input type="text" id="deviceIdInput" value="HerPulse_Q" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="devicePasswordInput">Device password</label>
+        <div class="input-wrap">
+          <input type="password" id="devicePasswordInput" placeholder="••••••••" autocomplete="off">
+          <button type="button" class="toggle-visibility" id="toggleDevicePw" aria-label="Show password">👁</button>
+        </div>
+      </div>
+
+      <div class="detail-row"><span class="k">Wi-Fi</span><span class="v" id="wifiState">—</span></div>
+      <div class="detail-row"><span class="k">IP address</span><span class="v" id="ipAddr">—</span></div>
+
+      <div class="error-msg" id="errorMsg"></div>
+
+      <div class="stack-gap mt-24">
+        <button class="btn btn-primary" id="connectBtn">Connect device</button>
+        <button class="btn btn-ghost hidden" id="startBtn">Start analysis →</button>
+      </div>
+    </div>
+
+    <p class="footnote">Data from the pad travels device → HerPulse backend → your report. Nothing is analyzed on the device itself.</p>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    requireSession();
+
+    const connectBtn = document.getElementById('connectBtn');
+    const startBtn = document.getElementById('startBtn');
+    const statusChip = document.getElementById('statusChip');
+    const statusText = document.getElementById('statusText');
+    const wifiState = document.getElementById('wifiState');
+    const ipAddr = document.getElementById('ipAddr');
+    const deviceIdInput = document.getElementById('deviceIdInput');
+    const devicePasswordInput = document.getElementById('devicePasswordInput');
+    const deviceRing = document.getElementById('deviceRing');
+    const errorMsg = document.getElementById('errorMsg');
+
+    document.getElementById('toggleDevicePw').addEventListener('click', () => {
+      const isPw = devicePasswordInput.type === 'password';
+      devicePasswordInput.type = isPw ? 'text' : 'password';
+    });
+
+    function setChip(kind, text) {
+      statusChip.className = 'chip chip-' + kind;
+      statusText.textContent = text;
+    }
+
+    async function refreshStatus() {
+      try {
+        const s = await HerPulseAPI.deviceStatus();
+        if (s.device_id) deviceIdInput.value = s.device_id;
+        if (s.connected) {
+          setChip('ok', 'Connected');
+          statusChip.classList.add('chip-live');
+          wifiState.textContent = 'Connected';
+          ipAddr.textContent = s.ip || '—';
+          deviceRing.classList.remove('syncing');
+          connectBtn.classList.add('hidden');
+          startBtn.classList.remove('hidden');
+        }
+      } catch (e) { /* not connected yet, ignore */ }
+    }
+
+    connectBtn.addEventListener('click', async () => {
+      errorMsg.classList.remove('show');
+      if (!devicePasswordInput.value) {
+        errorMsg.textContent = 'Enter the device password.';
+        errorMsg.classList.add('show');
+        return;
+      }
+      connectBtn.disabled = true;
+      connectBtn.textContent = 'Searching for device…';
+      setChip('warn', 'Connecting…');
+      deviceRing.classList.add('syncing');
+
+      try {
+        const s = await HerPulseAPI.connectDevice(deviceIdInput.value, devicePasswordInput.value);
+        setChip('ok', 'Connected');
+        statusChip.classList.add('chip-live');
+        wifiState.textContent = 'Connected';
+        ipAddr.textContent = s.ip || '—';
+        deviceRing.classList.remove('syncing');
+        connectBtn.classList.add('hidden');
+        startBtn.classList.remove('hidden');
+      } catch (err) {
+        deviceRing.classList.remove('syncing');
+        setChip('risk', 'Connection failed');
+        errorMsg.textContent = err.message || 'Could not reach the device. Check its Wi-Fi and try again.';
+        errorMsg.classList.add('show');
+        connectBtn.disabled = false;
+        connectBtn.textContent = 'Try again';
+      }
+    });
+
+    startBtn.addEventListener('click', () => { window.location.href = 'questionnaire.html'; });
+
+    refreshStatus();
+  </script>
+</body>
+</html>

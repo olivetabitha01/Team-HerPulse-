@@ -1,0 +1,21 @@
+# HerPulse App Lab app descriptor.
+# App Lab reads this to know what the App is made of. If your App Lab
+# version wants Bricks listed here too (e.g. a camera/vision Brick once
+# you wire that in), add them under `bricks:` — browse what's available
+# in App Lab's Bricks panel rather than guessing names, since these are
+# still evolving.
+
+name: herpulse
+version: 0.1.0
+description: HerPulse pad analyzer — button-triggered scan, reagent dispense, RGB read, Wi-Fi handoff to the Flask backend + website.
+
+sketch:
+  path: sketch/sketch.ino
+
+python:
+  path: python/main.py
+
+# bricks:
+#   - name: camera   # only if/when you add a Brick-based camera instead
+#                     # of the laptop-side webcam approach described in
+#                     # python/main.py's check_pad() docstring.

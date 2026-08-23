@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your report — HerPulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .report-actions { display: flex; gap: 10px; margin-top: 22px; }
+  .report-actions .btn { width: auto; flex: 1; font-size: 13.5px; padding: 12px; }
+  .report-date { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-soft); }
+</style>
+</head>
+<body>
+  <div class="screen">
+    <div class="app-header row-between" style="max-width:420px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img src="assets/logo.png" alt="HerPulse" style="height:30px;">
+      </div>
+      <button class="btn-text" id="logoutBtn">Log out</button>
+    </div>
+
+    <div class="card">
+      <div class="row-between">
+        <h1 style="font-size:19px;">Your report</h1>
+        <span class="report-date" id="reportDate">—</span>
+      </div>
+      <p style="margin-top:6px;">Based on your sensor reading and check-in answers.</p>
+
+      <div id="doctorBanner" class="hidden" style="background:var(--risk-bg); color:var(--risk); border-radius:var(--radius-md); padding:14px 16px; font-size:13.5px; font-weight:600; margin:14px 0;"></div>
+
+      <div class="metric-grid" id="metricGrid">
+        <!-- injected -->
+      </div>
+
+      <hr class="divider">
+
+      <h3 style="font-size:15px; color: var(--ink);">Suggestions</h3>
+      <ul class="suggestion-list" id="suggestionList"></ul>
+
+      <div class="report-actions">
+        <button class="btn btn-ghost" id="downloadBtn">Download PDF</button>
+        <button class="btn btn-ghost" id="historyBtn">History</button>
+      </div>
+    </div>
+
+    <p class="footnote">This report is a screening aid, not a medical diagnosis. Speak with a doctor about any concerning results.</p>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    requireSession();
+
+    const metricGrid = document.getElementById('metricGrid');
+    const suggestionList = document.getElementById('suggestionList');
+    const reportDate = document.getElementById('reportDate');
+
+    function statusIcon(status) {
+      if (status === 'risk') return '⚠';
+      if (status === 'warn') return '⚠';
+      return '✓';
+    }
+
+    async function loadReport() {
+      try {
+        const r = await HerPulseAPI.getReport();
+        reportDate.textContent = r.generated_at || '';
+
+        const doctorBanner = document.getElementById('doctorBanner');
+        if (r.see_doctor) {
+          doctorBanner.textContent = '⚕ ' + (r.doctor_note || 'One or more readings are outside the normal range — please see a gynecologist.');
+          doctorBanner.classList.remove('hidden');
+        }
+
+        metricGrid.innerHTML = r.metrics.map(m => `
+          <div class="metric-row ${m.status}">
+            <span class="metric-name">${m.label}</span>
+            <span class="metric-value">${m.value}${m.unit || ''} · ${statusIcon(m.status)} ${m.risk_label || ''}</span>
+          </div>
+        `).join('');
+
+        suggestionList.innerHTML = r.suggestions.map(s => `<li>${s}</li>`).join('');
+      } catch (err) {
+        metricGrid.innerHTML = `<p style="color:var(--risk);">Couldn't load your report yet. Run an analysis first.</p>`;
+      }
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      try { await HerPulseAPI.logout(); } finally { window.location.href = 'login.html'; }
+    });
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+      window.print();
+    });
+    document.getElementById('historyBtn').addEventListener('click', () => {
+      alert('History view is coming in a future update.');
+    });
+
+    loadReport();
+  </script>
+</body>
+</html>

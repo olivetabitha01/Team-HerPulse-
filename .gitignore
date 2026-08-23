@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Flask runtime data
+backend/herpulse.db
+
+# OS
+.DS_Store
+Thumbs.db

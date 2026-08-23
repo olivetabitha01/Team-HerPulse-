@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log in — HerPulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="screen">
+    <div class="app-header">
+      <img src="assets/logo.png" alt="HerPulse">
+    </div>
+
+    <div class="card">
+      <h1 style="font-size:22px;">Welcome back</h1>
+      <p style="margin-top:6px;">Log in to sync your device and view your report.</p>
+
+      <div class="error-msg" id="errorMsg"></div>
+
+      <form id="loginForm" novalidate>
+        <div class="field">
+          <label for="username">Username or device code</label>
+          <input type="text" id="username" name="username" autocomplete="username" placeholder="e.g. tabitha or 4821" required>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <input type="password" id="password" name="password" autocomplete="current-password" placeholder="••••••••" required>
+            <button type="button" class="toggle-visibility" id="toggleVis" aria-label="Show password">👁</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="loginBtn">Log in</button>
+      </form>
+
+      <p class="center" style="margin-top:18px; font-size:13px;">
+        New here? <a href="#" id="signupLink">Create an account</a>
+      </p>
+    </div>
+
+    <p class="footnote">Your cycle data stays private and is only used to generate your report.</p>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    const form = document.getElementById('loginForm');
+    const errorMsg = document.getElementById('errorMsg');
+    const loginBtn = document.getElementById('loginBtn');
+    const toggleVis = document.getElementById('toggleVis');
+    const passwordInput = document.getElementById('password');
+
+    toggleVis.addEventListener('click', () => {
+      const isPw = passwordInput.type === 'password';
+      passwordInput.type = isPw ? 'text' : 'password';
+      toggleVis.textContent = isPw ? '🙈' : '👁';
+      toggleVis.setAttribute('aria-label', isPw ? 'Hide password' : 'Show password');
+    });
+
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorMsg.classList.add('show');
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorMsg.classList.remove('show');
+
+      const username = document.getElementById('username').value.trim();
+      const password = passwordInput.value;
+      if (!username || !password) { showError('Enter both your username and password.'); return; }
+
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Logging in…';
+
+      try {
+        await HerPulseAPI.login(username, password);
+        window.location.href = 'connect.html';
+      } catch (err) {
+        showError(err.message || 'Could not log in. Check your details and try again.');
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Log in';
+      }
+    });
+
+    document.getElementById('signupLink').addEventListener('click', (e) => {
+      e.preventDefault();
+      showError('Account creation happens through your team admin for now — ask them for a login code.');
+    });
+  </script>
+</body>
+</html>
