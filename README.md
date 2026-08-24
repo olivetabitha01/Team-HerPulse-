@@ -75,9 +75,6 @@ parameter and a doctor-visit recommendation when warranted.
 
 ## System architecture
 
-> Drop your exported block diagram into `docs/images/block-diagram/` — the
-> image below will pick it up automatically once the filename matches.
-
 ![System architecture block diagram](docs/images/block-diagram/system-architecture.png)
 
 **In short:** the UNO Q's MCU side (sketch) handles real-time control —
@@ -105,11 +102,7 @@ Full breakdown of every route, credential, and file: see
 
 ### Circuit diagram
 
-> Drop your circuit exports into `docs/images/circuit/` — supports multiple
-> images (main schematic, power section, sensor wiring, etc.).
-
 ![Circuit diagram](docs/images/circuit/circuit-diagram-1.png)
-![Circuit diagram — detail](docs/images/circuit/circuit-diagram-2.png)
 
 ### 3D enclosure design
 
@@ -127,8 +120,6 @@ Full breakdown of every route, credential, and file: see
 </table>
 
 ### Assembled device
-
-> Drop real photos into `docs/images/hardware-photos/`.
 
 ![Assembled device](docs/images/hardware-photos/assembled-device.jpg)
 
