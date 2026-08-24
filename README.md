@@ -121,7 +121,7 @@ Full breakdown of every route, credential, and file: see
 
 ### Assembled device
 
-![Assembled device](docs/images/hardware-photos/assembled-device.jpg)
+![Assembled device](docs/images/hardware-photos/assembled-device.jpg.jpeg)
 
 ### Bill of materials
 
