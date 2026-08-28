@@ -53,25 +53,6 @@ parameter and a doctor-visit recommendation when warranted.
 
 ---
 
-## Screenshots
-
-> Drop your images into `docs/images/website/` and update the paths below —
-> they'll render directly here once added.
-
-| Login | Connect device | Report |
-|:---:|:---:|:---:|
-| ![Login screen](docs/images/website/screenshot-login.png) | ![Connect device screen](docs/images/website/screenshot-connect.png) | ![Report screen](docs/images/website/screenshot-report.png) |
-
-<details>
-<summary>Full user flow (click to expand)</summary>
-
-| Splash | Questionnaire | Processing |
-|:---:|:---:|:---:|
-| ![Splash screen](docs/images/website/screenshot-splash.png) | ![Questionnaire screen](docs/images/website/screenshot-questionnaire.png) | ![Processing screen](docs/images/website/screenshot-processing.png) |
-
-</details>
-
----
 
 ## System architecture
 
