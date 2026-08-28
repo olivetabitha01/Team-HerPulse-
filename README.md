@@ -91,8 +91,7 @@ Full breakdown of every route, credential, and file: see
 
 <table>
 <tr>
-<td><img src="docs/images/3d-design/enclosure-render-front.png" alt="Enclosure front render" width="100%"></td>
-<td><img src="docs/images/3d-design/enclosure-render-exploded.png" alt="Enclosure exploded view" width="100%"></td>
+<td><img src="docs/images/3d-design/enclosure-render-front.jpeg" alt="Enclosure front render" width="100%"></td>
 </tr>
 <tr>
 <td align="center"><sub>Front view</sub></td>
